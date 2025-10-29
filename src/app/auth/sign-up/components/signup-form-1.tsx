@@ -18,10 +18,9 @@ import {
 import { addUserToIndexedDB } from "@/utils/indexedDBUtils";
 import { useNavigate } from "react-router-dom";
 
-const signupFormSchema = z
-  .object({
-    email: z.string().email("Invalid email address"),
-  });
+const signupFormSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
 
@@ -29,7 +28,7 @@ export function SignupForm1({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const route = useNavigate()
+  const route = useNavigate();
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
@@ -48,7 +47,7 @@ export function SignupForm1({
     } catch (error) {
       console.log(error);
     } finally {
-      route("/auth/sign-in")
+      route("/auth/sign-in");
     }
   };
 
@@ -95,8 +94,8 @@ export function SignupForm1({
 
                   <Button
                     type="button"
-                    onClick={form.handleSubmit(onSubmit)} // Memanggil handleSubmit tanpa ()
-                    className="w-full cursor-pointer bg-[#FBC037] text-primary font-bold"
+                    onClick={form.handleSubmit(onSubmit)}
+                    className="w-full cursor-pointer bg-[#FBC037] text-primary font-bold hover:bg-amber-500 hover:text-white"
                   >
                     Daftar dengan email
                   </Button>
@@ -109,7 +108,7 @@ export function SignupForm1({
 
                   <Button
                     variant="outline"
-                    className="w-full cursor-pointer"
+                    className="w-full cursor-pointer hover:text-accent-foreground"
                     type="button"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

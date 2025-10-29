@@ -8,29 +8,26 @@ const JOBS_STORE_NAME = "jobs";
 const CANDIDATS_STORE_NAME = "candidats";
 const USERS_STORE_NAME = "users";
 
-// Fungsi untuk membuka database IndexedDB
 const openDatabase = async () => {
   const db = await openDB(DB_NAME, 3, {
     upgrade(db) {
-      // Buat store untuk "jobs" jika belum ada
       if (!db.objectStoreNames.contains(JOBS_STORE_NAME)) {
         db.createObjectStore(JOBS_STORE_NAME, {
           keyPath: "id",
-          autoIncrement : true
+          autoIncrement: true,
         });
       }
 
-      // Buat store baru untuk "Configuration"
       if (!db.objectStoreNames.contains(CANDIDATS_STORE_NAME)) {
         db.createObjectStore(CANDIDATS_STORE_NAME, {
-          keyPath: "id", // ID untuk setiap profil
-          autoIncrement : true
+          keyPath: "id",
+          autoIncrement: true,
         });
       }
 
       if (!db.objectStoreNames.contains(USERS_STORE_NAME)) {
         db.createObjectStore(USERS_STORE_NAME, {
-          keyPath: "email", // ID untuk setiap user
+          keyPath: "email",
         });
       }
     },
@@ -43,15 +40,14 @@ export const getJobByIdFromIndexedDB = async (
 ): Promise<JobListProps | undefined> => {
   try {
     const db = await openDatabase();
-    const job = await db.get(JOBS_STORE_NAME, id); // Mengambil pekerjaan berdasarkan id
+    const job = await db.get(JOBS_STORE_NAME, id);
     return job;
   } catch (error) {
     console.error("Error fetching job by id from IndexedDB:", error);
-    return undefined; // Jika terjadi error, kembalikan undefined
+    return undefined;
   }
 };
 
-// Fungsi untuk menambahkan data pekerjaan ke IndexedDB
 export const addJobToIndexedDB = async (job: JobListProps) => {
   try {
     const db = await openDatabase();
@@ -65,7 +61,6 @@ export const addJobToIndexedDB = async (job: JobListProps) => {
   }
 };
 
-// Fungsi untuk menambahkan profil ke IndexedDB
 export const addCandidatToIndexedDB = async (
   configuration: CandidatListProps
 ) => {
@@ -74,16 +69,15 @@ export const addCandidatToIndexedDB = async (
 
     const profileWithId = {
       ...configuration,
-      id: configuration.id || Date.now(), 
+      id: configuration.id || Date.now(),
     };
 
-    await db.put(CANDIDATS_STORE_NAME, profileWithId); // Menyimpan profil ke object store "Configuration"
+    await db.put(CANDIDATS_STORE_NAME, profileWithId);
   } catch (error) {
     console.error("Error adding profile to IndexedDB:", error);
   }
 };
 
-// Fungsi untuk mengambil semua data pekerjaan dari IndexedDB
 export const getAllJobsFromIndexedDB = async (): Promise<JobListProps[]> => {
   try {
     const db = await openDatabase();
@@ -95,8 +89,9 @@ export const getAllJobsFromIndexedDB = async (): Promise<JobListProps[]> => {
   }
 };
 
-// Fungsi untuk mengambil semua data profil dari IndexedDB
-export const getAllCandidateFromIndexedDB = async () : Promise<CandidatListProps[]> => {
+export const getAllCandidateFromIndexedDB = async (): Promise<
+  CandidatListProps[]
+> => {
   try {
     const db = await openDatabase();
     const candidates = await db.getAll(CANDIDATS_STORE_NAME);
@@ -110,7 +105,6 @@ export const getAllCandidateFromIndexedDB = async () : Promise<CandidatListProps
 export const addUserToIndexedDB = async (user: UserProps) => {
   try {
     const db = await openDatabase();
-    // Menambahkan ID secara otomatis jika belum ada
     const userWithId = {
       ...user,
     };
@@ -121,16 +115,15 @@ export const addUserToIndexedDB = async (user: UserProps) => {
   }
 };
 
-
 export const getUserByEmail = async (email: string, password: string) => {
   try {
     const db = await openDatabase();
-    const user = await db.get(USERS_STORE_NAME, email); // Ambil pengguna berdasarkan email
+    const user = await db.get(USERS_STORE_NAME, email);
 
     if (user && user.password === password) {
-      return user; // Jika ditemukan dan password cocok, kembalikan pengguna
+      return user;
     } else {
-      return undefined; // Jika tidak ditemukan atau password tidak cocok
+      return undefined;
     }
   } catch (error) {
     console.error("Error fetching user from IndexedDB:", error);

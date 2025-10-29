@@ -2,10 +2,11 @@ import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 
 // Lazy load components for better performance
-const Dashboard = lazy(() => import("@/app/job-list/page"));
-const Dashboard2 = lazy(() => import("@/app/manage-job/page"));
-const Tasks = lazy(() => import("@/app/tasks/page"));
-const Pricing = lazy(() => import("@/app/pricing/page"));
+const Dashboard = lazy(() => import("@/app/admin/job-list/page"));
+const Dashboard2 = lazy(() => import("@/app/admin/manage-job/page"));
+const Tasks = lazy(() => import("@/app/user/job-listing/page"));
+const Pricing = lazy(() => import("@/app/user/application-form/page"));
+const SuccessApply = lazy(() => import("@/app/user/success/page"));
 
 // Auth pages
 const SignIn = lazy(() => import("@/app/auth/sign-in/page"));
@@ -44,6 +45,10 @@ export const routes: RouteConfig[] = [
   {
     path: "/dashboard/admin/manage-job/:id",
     element: <Dashboard2 />,
+  },
+  {
+    path: "/dashboard/success/apply",
+    element: <SuccessApply />,
   },
   {
     path: "/dashboard/user/job-list",
@@ -85,9 +90,6 @@ export const routes: RouteConfig[] = [
     path: "/errors/under-maintenance",
     element: <UnderMaintenance />,
   },
-
-
-  // Catch-all route for 404
   {
     path: "*",
     element: <NotFound />,
