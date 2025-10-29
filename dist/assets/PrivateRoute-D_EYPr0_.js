@@ -1,1 +1,0 @@
-import{u as n,j as t}from"./index-C5FY6fwz.js";import{u}from"./useAuthStore-T-NqNGOJ.js";const g=({children:r})=>{const s=u(o=>o.isLoggedIn),e=n();return s?t.jsx(t.Fragment,{children:r}):(e("/auth/sign-in"),null)};export{g as P};
