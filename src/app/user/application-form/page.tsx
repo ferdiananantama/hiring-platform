@@ -205,7 +205,12 @@ export default function ApplicationForm() {
           <CardHeader className="bg-background">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button
+                  onClick={() => route(-1)}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="text-xl font-semibold text-foreground">

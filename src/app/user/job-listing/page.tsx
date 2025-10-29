@@ -10,6 +10,7 @@ import {
 } from "@/utils/indexedDBUtils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import PrivateRoute from "@/components/layouts/PrivateRoute";
+import Header from "@/components/navbar";
 
 const JobListingPage = () => {
   const route = useNavigate();
@@ -55,16 +56,7 @@ const JobListingPage = () => {
   return (
     <PrivateRoute>
       <div className="min-h-screen bg-background">
-        <header className="bg-background border-b border-border px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-foreground">Job List</h1>
-          <div className="w-10 h-10 rounded-full bg-gradient from-purple-400 to-pink-400 flex items-center justify-center">
-            <img
-              src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/62dd9201-a882-48a2-b79a-cf6bbe038773.png"
-              alt="User profile avatar showing a person in business attire with a professional headshot against a neutral background"
-              className="w-full h-full rounded-full object-cover"
-            />
-          </div>
-        </header>
+        <Header />
 
         <div className="max-w-7xl mx-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
