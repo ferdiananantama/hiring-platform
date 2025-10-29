@@ -46,6 +46,7 @@ const JobListingPage = () => {
         setJob(jobFound);
       }
     };
+    //
 
     const idParam = Number(idSelected);
     if (idParam) {
