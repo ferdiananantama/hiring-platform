@@ -6,6 +6,7 @@ export interface JobListProps {
   salary_range: SalaryRange;
   job_description: string;
   list_card: ListCard;
+  fields: Field[]
 }
 
 export interface SalaryRange {
@@ -19,4 +20,13 @@ export interface ListCard {
   badge: string;
   started_on_text: string;
   cta: string;
+}
+
+export interface Field {
+  key: string
+  validation: Validation
+}
+
+export interface Validation {
+  required: boolean | null
 }

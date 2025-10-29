@@ -15,6 +15,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { getUserByEmail } from "@/utils/indexedDBUtils";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const loginFormSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -27,6 +31,9 @@ export function LoginForm1({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+
+  const setIsLoggedIn = useAuthStore((state) => state.setIsLoggedIn);
+  const route = useNavigate()
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -34,6 +41,27 @@ export function LoginForm1({
       password: "",
     },
   });
+  const [error, setError] = useState<string | null>(null);
+
+
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      // Mengecek kredensial pengguna
+      const user = await getUserByEmail(data.email, data.password);      
+
+      if (user?.role === "admin") {
+        setIsLoggedIn(true);
+        route("/dashboard/admin/job-list");
+      } else if (user?.role === "user") {
+        setIsLoggedIn(true);
+        route("/dashboard/user/job-list");
+      } else {
+        setError("Invalid email or password.");
+      }
+    } catch (error) {
+      setError("Login failed. Please try again.");
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -52,7 +80,7 @@ export function LoginForm1({
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action="/">
+            <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="grid gap-6">
                 <div className="grid gap-4">
                   <FormField
@@ -96,7 +124,7 @@ export function LoginForm1({
                   />
 
                   <a
-                    href="/auth/forgot-password-3"
+                    href="#"
                     className="ml-auto text-sm underline-offset-2 hover:underline text-[#01959f]"
                   >
                     Lupa kata sandi?
@@ -108,6 +136,16 @@ export function LoginForm1({
                   >
                     Masuk
                   </Button>
+
+                  {
+                    error && (
+                      <div className="flex items-center justify-center">
+                        <small className="text-red-500">
+                          {error}
+                        </small>
+                      </div>
+                    )
+                  }
 
                   <div className="flex items-center justify-center">
                     <div className="flex-1 border-t border-[#9E9E9E]"></div>

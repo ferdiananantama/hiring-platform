@@ -8,6 +8,7 @@ import JobModal from "./components/add-job-list";
 import { getAllJobsFromIndexedDB } from "@/utils/indexedDBUtils";
 import type { JobListProps } from "@/types/job-list";
 import emptyImg from "@/assets/images/empty-joblist.png";
+import PrivateRoute from "@/components/layouts/PrivateRoute";
 
 const JobListApp = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +44,7 @@ const JobListApp = () => {
   };
 
   return (
+    <PrivateRoute>
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-background border-b border-border px-6 py-4 flex items-center justify-between">
@@ -102,7 +104,7 @@ const JobListApp = () => {
                     <div className="flex items-end">
                       <Button
                         onClick={() => {
-                          route(`/dashboard/admin/manage-job`);
+                          route(`/dashboard/admin/manage-job/${String(job.id)}`)
                         }}
                         variant="default"
                         className="bg-cyan-600 hover:bg-cyan-700 text-background"
@@ -180,6 +182,7 @@ const JobListApp = () => {
 
       <JobModal showModal={showModal} setShowModal={setShowModal} />
     </div>
+    </PrivateRoute>
   );
 };
 

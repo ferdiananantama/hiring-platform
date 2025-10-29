@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { ArrowLeft, Camera, ChevronDownIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,31 +17,51 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 import { Calendar } from "@/components/ui/calendar";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import type { CandidatListProps } from "@/types/candidat-list";
+import { addCandidatToIndexedDB } from "@/utils/indexedDBUtils";
+import { useParams } from "react-router-dom";
+import PrivateRoute from "@/components/layouts/PrivateRoute";
 
 export default function ApplicationForm() {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    dateOfBirth: "",
-    pronoun: "",
-    domicile: "",
-    phoneNumber: "",
-    email: "",
-    linkedinUrl: "",
+
+  const [open, setOpen] = useState<boolean>(false);
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const { id} = useParams();  
+
+  const {register, handleSubmit, control, getValues} = useForm<CandidatListProps>({
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      domicile: "",
+      gender: "",
+      profile_picture: "1",
+      linkedin_link: "",
+    },
   });
 
-  const [open, setOpen] = React.useState(false);
-  const [date, setDate] = React.useState<Date | undefined>(undefined);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const onSubmit = () => {
+    try {
+      const payload = {
+        fullName: getValues("fullName"),
+        email: getValues("email"),
+        phone: getValues("phone"),
+        domicile: getValues("domicile"),
+        gender: getValues("gender"),
+        profile_picture: getValues("profile_picture"),
+        linkedin_link: getValues("linkedin_link"),
+        idJobList: Number(id)
+      }
+      addCandidatToIndexedDB(payload);
+    } catch (error) {
+        console.error("Error submitting candidat:", error);
+    }
   };
 
   return (
+    <PrivateRoute>
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
       <Card className="w-full max-w-3xl shadow-lg">
         <CardHeader className="bg-background">
@@ -65,7 +84,7 @@ export default function ApplicationForm() {
         </CardHeader>
 
         <CardContent className="px-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)}  className="space-y-6">
             <div className="text-sm text-destructive mb-6">* Required</div>
 
             {/* Photo Profile Section */}
@@ -136,8 +155,7 @@ export default function ApplicationForm() {
               <Input
                 id="fullName"
                 placeholder="Enter your full name"
-                value={formData.fullName}
-                onChange={(e) => handleInputChange("fullName", e.target.value)}
+                {...register("fullName")}
                 className="bg-background"
               />
             </div>
@@ -178,31 +196,34 @@ export default function ApplicationForm() {
 
             {/* Pronoun (Gender) */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-foreground">
-                Pronoun (gender)<span className="text-destructive">*</span>
-              </Label>
-              <RadioGroup
-                value={formData.pronoun}
-                onValueChange={(value) => handleInputChange("pronoun", value)}
-                className="flex gap-8"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="female" id="female" />
-                  <Label
-                    htmlFor="female"
-                    className="font-normal cursor-pointer"
-                  >
-                    She/her (Female)
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="male" id="male" />
-                  <Label htmlFor="male" className="font-normal cursor-pointer">
-                    He/him (Male)
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+        <Label className="text-sm font-medium text-foreground">
+          Pronoun (gender)<span className="text-destructive">*</span>
+        </Label>
+        <Controller
+          name="gender"
+          control={control}
+          render={({ field }) => (
+            <RadioGroup {...field} 
+              value={field.value} onValueChange={(value) => field.onChange(value)} required className="flex gap-8">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="female" id="female" />
+                <Label
+                  htmlFor="female"
+                  className="font-normal cursor-pointer"
+                >
+                  She/her (Female)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="male" id="male" />
+                <Label htmlFor="male" className="font-normal cursor-pointer">
+                  He/him (Male)
+                </Label>
+              </div>
+            </RadioGroup>
+          )}
+        />
+      </div>
 
             {/* Domicile */}
             <div className="space-y-2">
@@ -212,21 +233,24 @@ export default function ApplicationForm() {
               >
                 Domicile<span className="text-destructive">*</span>
               </Label>
-              <Select
-                value={formData.domicile}
-                onValueChange={(value) => handleInputChange("domicile", value)}
-              >
-                <SelectTrigger className="bg-background w-full">
-                  <SelectValue placeholder="Choose your domicile" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="jakarta">Jakarta</SelectItem>
-                  <SelectItem value="bandung">Bandung</SelectItem>
-                  <SelectItem value="surabaya">Surabaya</SelectItem>
-                  <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
-                  <SelectItem value="bali">Bali</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+              name="domicile"
+              control={control}
+              render={({ field }) => (
+                <Select {...field} value={field.value} onValueChange={(value) => field.onChange(value)} required>
+                  <SelectTrigger className="bg-background w-full">
+                    <SelectValue placeholder="Choose your domicile" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="jakarta">Jakarta</SelectItem>
+                    <SelectItem value="bandung">Bandung</SelectItem>
+                    <SelectItem value="surabaya">Surabaya</SelectItem>
+                    <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
+                    <SelectItem value="bali">Bali</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              />
             </div>
 
             {/* Phone Number */}
@@ -255,12 +279,9 @@ export default function ApplicationForm() {
                   </SelectContent>
                 </Select>
                 <Input
+                {...register("phone")}
                   id="phoneNumber"
                   placeholder="81XXXXXXXXX"
-                  value={formData.phoneNumber}
-                  onChange={(e) =>
-                    handleInputChange("phoneNumber", e.target.value)
-                  }
                   className="flex-1 bg-background"
                 />
               </div>
@@ -275,11 +296,10 @@ export default function ApplicationForm() {
                 Email<span className="text-destructive">*</span>
               </Label>
               <Input
+                {...register("email")}
                 id="email"
                 type="email"
                 placeholder="Enter your email address"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
                 className="bg-background"
               />
             </div>
@@ -293,12 +313,9 @@ export default function ApplicationForm() {
                 Link Linkedin<span className="text-destructive">*</span>
               </Label>
               <Input
+                {...register("linkedin_link")}
                 id="linkedinUrl"
                 placeholder="https://linkedin.com/in/username"
-                value={formData.linkedinUrl}
-                onChange={(e) =>
-                  handleInputChange("linkedinUrl", e.target.value)
-                }
                 className="bg-background"
               />
             </div>
@@ -314,5 +331,6 @@ export default function ApplicationForm() {
         </CardContent>
       </Card>
     </div>
+    </PrivateRoute>
   );
 }

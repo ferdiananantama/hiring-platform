@@ -9,6 +9,7 @@ import {
   getJobByIdFromIndexedDB,
 } from "@/utils/indexedDBUtils";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import PrivateRoute from "@/components/layouts/PrivateRoute";
 
 const JobListingPage = () => {
   const route = useNavigate();
@@ -16,25 +17,28 @@ const JobListingPage = () => {
   const [job, setJob] = useState<JobListProps | null>(null);
   const [idx, setId] = useSearchParams();
 
+  // Update the URL parameter with the selected job's id
   const onChangeId = (id: string) => {
     idx.set("id", id);
     setId(idx, { replace: true });
   };
 
+  // Memoized logic to handle the selection of job id
   const idSelected = useMemo(() => {
-    const id =
-      idx.get("id") ?? (jobs.map((job) => job.id?.toString())[0] || "");
-    return id;
-  }, [idx]);
+    const idFromPath = idx.get("id");
+    const defaultId = jobs.length > 0 ? jobs[0].id?.toString() : "";
+    return idFromPath ?? defaultId;
+  }, [idx, jobs]);
 
   useEffect(() => {
     const fetchJobs = async () => {
       const fetchedJobs = await getAllJobsFromIndexedDB();
-      setJobs(fetchedJobs); // Menyimpan data ke dalam state
+      setJobs(fetchedJobs); // Store jobs in state
     };
-    fetchJobs(); // Memanggil fungsi fetch data
-  }, []); //
+    fetchJobs(); // Fetch job data on component mount
+  }, []); // Empty dependency to fetch jobs only once
 
+  // When the job data or selected id changes, fetch the job details
   useEffect(() => {
     const fetchJobById = async (id: number) => {
       const jobFound = await getJobByIdFromIndexedDB(id);
@@ -43,13 +47,14 @@ const JobListingPage = () => {
       }
     };
 
-    const idParam = Number(idSelected);
+    const idParam = Number(idSelected); // Convert the selected id to a number
     if (idParam) {
       fetchJobById(idParam);
     }
-  }, [idx, jobs]);
+  }, [idSelected, jobs]); // Trigger this effect when the selected id or jobs change
 
   return (
+    <PrivateRoute>
     <div className="min-h-screen bg-background">
       <header className="bg-background border-b border-border px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">Job List</h1>
@@ -123,7 +128,7 @@ const JobListingPage = () => {
                     </div>
                   </div>
                   <Button
-                    onClick={() => route("/pricing")}
+                    onClick={() => route(`/user/apply/${idSelected}`)}
                     className="bg-amber-400 hover:bg-amber-500 hover:text-slate-600 text-black font-medium px-6"
                   >
                     Apply
@@ -136,6 +141,7 @@ const JobListingPage = () => {
         </div>
       </div>
     </div>
+    </PrivateRoute>
   );
 };
 

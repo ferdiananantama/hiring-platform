@@ -15,21 +15,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { addUserToIndexedDB } from "@/utils/indexedDBUtils";
+import { useNavigate } from "react-router-dom";
 
 const signupFormSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
     email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(6, "Please confirm your password"),
-    terms: z
-      .boolean()
-      .refine((val) => val === true, "You must agree to the terms"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
   });
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
@@ -38,17 +29,28 @@ export function SignupForm1({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const route = useNavigate()
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
       email: "",
-      password: "",
-      confirmPassword: "",
-      terms: false,
     },
   });
+
+  const onSubmit = () => {
+    try {
+      const payload = {
+        email: form.getValues("email"),
+        password: form.getValues("email"),
+        role: form.getValues("email").includes("admin") ? "admin" : "user",
+      };
+      addUserToIndexedDB(payload);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      route("/auth/sign-in")
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -67,7 +69,7 @@ export function SignupForm1({
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action="/">
+            <form>
               <div className="grid gap-6">
                 <div className="grid gap-4">
                   <FormField
@@ -92,7 +94,8 @@ export function SignupForm1({
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={form.handleSubmit(onSubmit)} // Memanggil handleSubmit tanpa ()
                     className="w-full cursor-pointer bg-[#FBC037] text-primary font-bold"
                   >
                     Daftar dengan email

@@ -44,8 +44,6 @@ const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
       maxSalary: "",
       candidatesNeeded: "",
       jobType: "",
-      required: true,
-      key: "",
     },
   });
 
@@ -60,6 +58,7 @@ const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
       linkedinLink: "mandatory",
       dateOfBirth: "mandatory",
     });
+    
 
   const updateProfileRequirement = (
     field: keyof ProfileRequirements,
@@ -73,11 +72,11 @@ const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
     target: ProfileRequirement
   ) => {
     if (current === target) {
-      if (target === "mandatory" ? true : false)
+      if (target === "mandatory" )
         return "bg-cyan-600 text-white border-cyan-600";
-      if (target === "optional" ? false : true)
+      if (target === "optional" )
         return "bg-slate-200 text-slate-700 border-slate-300";
-      if (target === "off" ? null : null)
+      if (target === "off" )
         return "bg-slate-200 text-slate-700 border-slate-300";
     }
     return "bg-background text-muted-foreground border-border hover:bg-muted";
@@ -88,8 +87,38 @@ const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
     reset();
   };
 
+
   const onSubmit = () => {
     try {
+      const fields = [
+        "fullName",
+        "photoProfile",
+        "gender",
+        "domicile",
+        "email",
+        "phoneNumber",
+        "linkedinLink",
+        "dateOfBirth"
+      ].map((key) => {
+        // Use the `key` to access profileRequirements dynamically
+        let required: boolean | null = null;
+
+        // Check the value of the key in profileRequirements
+        if (profileRequirements[key as keyof ProfileRequirements] === "mandatory") {
+          required = true;
+        } else if (profileRequirements[key as keyof ProfileRequirements] === "optional") {
+          required = false;
+        } else if (profileRequirements[key as keyof ProfileRequirements] === "off") {
+          required = null;
+        }
+
+        return {
+          key,
+          validation: {
+            required
+          }
+        };
+      });
       const payload = {
         title: getValues("jobName"),
         slug: getValues("jobType"),
@@ -115,9 +144,11 @@ const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
           cta: "Manage Jobs",
         },
         job_description: getValues("jobDescription"),
+        fields: fields
       };
       addJobToIndexedDB(payload);
-    } catch (error) {
+    }
+     catch (error) {
       console.error("Error submitting job:", error);
     } finally {
       handleCloseModal();

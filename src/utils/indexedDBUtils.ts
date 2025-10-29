@@ -1,27 +1,36 @@
-import type { JobConfigurationProps } from "@/types/job-configuration";
+import type { CandidatListProps } from "@/types/candidat-list";
 import type { JobListProps } from "@/types/job-list";
+import type { UserProps } from "@/types/user";
 import { openDB } from "idb";
 
-// Definisikan DB dan object store untuk pekerjaan dan profil
 const DB_NAME = "TestDB";
 const JOBS_STORE_NAME = "jobs";
-const CONFIGURATION_STORE_NAME = "configuration"; // Object store untuk profil
+const CANDIDATS_STORE_NAME = "candidats";
+const USERS_STORE_NAME = "users";
 
 // Fungsi untuk membuka database IndexedDB
 const openDatabase = async () => {
-  const db = await openDB(DB_NAME, 2, {
+  const db = await openDB(DB_NAME, 3, {
     upgrade(db) {
       // Buat store untuk "jobs" jika belum ada
       if (!db.objectStoreNames.contains(JOBS_STORE_NAME)) {
         db.createObjectStore(JOBS_STORE_NAME, {
           keyPath: "id",
+          autoIncrement : true
         });
       }
 
       // Buat store baru untuk "Configuration"
-      if (!db.objectStoreNames.contains(CONFIGURATION_STORE_NAME)) {
-        db.createObjectStore(CONFIGURATION_STORE_NAME, {
+      if (!db.objectStoreNames.contains(CANDIDATS_STORE_NAME)) {
+        db.createObjectStore(CANDIDATS_STORE_NAME, {
           keyPath: "id", // ID untuk setiap profil
+          autoIncrement : true
+        });
+      }
+
+      if (!db.objectStoreNames.contains(USERS_STORE_NAME)) {
+        db.createObjectStore(USERS_STORE_NAME, {
+          keyPath: "email", // ID untuk setiap user
         });
       }
     },
@@ -57,18 +66,18 @@ export const addJobToIndexedDB = async (job: JobListProps) => {
 };
 
 // Fungsi untuk menambahkan profil ke IndexedDB
-export const addConfigurationToIndexedDB = async (
-  configuration: JobConfigurationProps
+export const addCandidatToIndexedDB = async (
+  configuration: CandidatListProps
 ) => {
   try {
     const db = await openDatabase();
 
     const profileWithId = {
       ...configuration,
-      // id: configuration.id || Date.now(), // Atur ID berdasarkan waktu jika tidak ada
+      id: configuration.id || Date.now(), 
     };
 
-    await db.put(CONFIGURATION_STORE_NAME, profileWithId); // Menyimpan profil ke object store "Configuration"
+    await db.put(CANDIDATS_STORE_NAME, profileWithId); // Menyimpan profil ke object store "Configuration"
   } catch (error) {
     console.error("Error adding profile to IndexedDB:", error);
   }
@@ -87,34 +96,44 @@ export const getAllJobsFromIndexedDB = async (): Promise<JobListProps[]> => {
 };
 
 // Fungsi untuk mengambil semua data profil dari IndexedDB
-export const getAllConfigurationFromIndexedDB = async () => {
+export const getAllCandidateFromIndexedDB = async () : Promise<CandidatListProps[]> => {
   try {
     const db = await openDatabase();
-    const configurations = await db.getAll(CONFIGURATION_STORE_NAME);
-    return configurations;
+    const candidates = await db.getAll(CANDIDATS_STORE_NAME);
+    return candidates;
   } catch (error) {
     console.error("Error fetching Configuration from IndexedDB:", error);
+    return [];
   }
 };
 
-// Fungsi untuk menghapus semua data pekerjaan dari IndexedDB
-export const clearJobsFromIndexedDB = async () => {
+export const addUserToIndexedDB = async (user: UserProps) => {
   try {
     const db = await openDatabase();
-    await db.clear(JOBS_STORE_NAME);
-    console.log("All jobs cleared from IndexedDB");
+    // Menambahkan ID secara otomatis jika belum ada
+    const userWithId = {
+      ...user,
+    };
+    await db.put(USERS_STORE_NAME, userWithId);
+    console.log("User added to IndexedDB successfully");
   } catch (error) {
-    console.error("Error clearing jobs from IndexedDB:", error);
+    console.error("Error adding user to IndexedDB:", error);
   }
 };
 
-// Fungsi untuk menghapus semua data profil dari IndexedDB
-export const clearConfigurationFromIndexedDB = async () => {
+
+export const getUserByEmail = async (email: string, password: string) => {
   try {
     const db = await openDatabase();
-    await db.clear(CONFIGURATION_STORE_NAME);
-    console.log("All Configuration cleared from IndexedDB");
+    const user = await db.get(USERS_STORE_NAME, email); // Ambil pengguna berdasarkan email
+
+    if (user && user.password === password) {
+      return user; // Jika ditemukan dan password cocok, kembalikan pengguna
+    } else {
+      return undefined; // Jika tidak ditemukan atau password tidak cocok
+    }
   } catch (error) {
-    console.error("Error clearing Configuration from IndexedDB:", error);
+    console.error("Error fetching user from IndexedDB:", error);
+    return undefined;
   }
 };
