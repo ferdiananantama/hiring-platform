@@ -13,18 +13,27 @@ import PrivateRoute from "@/components/layouts/PrivateRoute";
 const JobListApp = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [showToast, setShowToast] = useState(true);
+  const [showToast, setShowToast] = useState(false);
   const route = useNavigate();
 
   const [jobs, setJobs] = useState<JobListProps[]>([]);
 
+   const fetchJobs = async () => {
+    const fetchedJobs = await getAllJobsFromIndexedDB();
+    setJobs(fetchedJobs);
+  };
+
   useEffect(() => {
-    const fetchJobs = async () => {
-      const fetchedJobs = await getAllJobsFromIndexedDB();
-      setJobs(fetchedJobs); // Menyimpan data ke dalam state
-    };
-    fetchJobs(); // Memanggil fungsi fetch data
-  }, []); //
+    fetchJobs(); 
+  }, []); 
+
+  useEffect(() => {
+    if (showToast) {
+      setTimeout(() => {
+        setShowToast(false);
+      }, 2000);
+    }
+  }, [showToast]);
 
   const getStatusBadgeStyles = (status: string) => {
     switch (status) {
@@ -41,6 +50,10 @@ const JobListApp = () => {
 
   const getStatusText = (status: string) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+   const createJob = () => {
+    fetchJobs(); // Refetch the jobs when a new job is created
   };
 
   return (
@@ -179,8 +192,7 @@ const JobListApp = () => {
           </button>
         </div>
       )}
-
-      <JobModal showModal={showModal} setShowModal={setShowModal} />
+        <JobModal showModal={showModal} setShowModal={setShowModal} createJob={createJob} setShowToast={setShowToast} />
     </div>
     </PrivateRoute>
   );

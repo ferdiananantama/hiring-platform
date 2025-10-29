@@ -11,15 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { JobListProps } from "@/types/job-list";
 import { useState } from "react";
 import { addJobToIndexedDB } from "@/utils/indexedDBUtils";
 
 interface JobModalProps {
   showModal: boolean;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
-  createJob?: (data: any) => void; // Fungsi untuk membuat pekerjaan baru
-  jobList?: JobListProps; // Daftar pekerjaan yang ada
+  createJob?: () => void;
+  setShowToast: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 type ProfileRequirement = "mandatory" | "optional" | "off";
@@ -35,7 +34,7 @@ interface ProfileRequirements {
   dateOfBirth: ProfileRequirement;
 }
 
-const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
+const JobModal = ({ showModal, setShowModal, createJob, setShowToast }: JobModalProps) => {
   const { control, handleSubmit, reset, getValues } = useForm({
     defaultValues: {
       jobName: "",
@@ -100,10 +99,7 @@ const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
         "linkedinLink",
         "dateOfBirth"
       ].map((key) => {
-        // Use the `key` to access profileRequirements dynamically
         let required: boolean | null = null;
-
-        // Check the value of the key in profileRequirements
         if (profileRequirements[key as keyof ProfileRequirements] === "mandatory") {
           required = true;
         } else if (profileRequirements[key as keyof ProfileRequirements] === "optional") {
@@ -147,6 +143,10 @@ const JobModal = ({ showModal, setShowModal }: JobModalProps) => {
         fields: fields
       };
       addJobToIndexedDB(payload);
+      setShowToast(true);
+      if (createJob) {
+        createJob(); // Trigger refetch of the jobs
+      }
     }
      catch (error) {
       console.error("Error submitting job:", error);

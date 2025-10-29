@@ -17,17 +17,19 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { CandidatListProps } from "@/types/candidat-list";
-import { addCandidatToIndexedDB } from "@/utils/indexedDBUtils";
+import { addCandidatToIndexedDB, getJobByIdFromIndexedDB } from "@/utils/indexedDBUtils";
 import { useParams } from "react-router-dom";
 import PrivateRoute from "@/components/layouts/PrivateRoute";
+import type { JobListProps } from "@/types/job-list";
 
 export default function ApplicationForm() {
 
   const [open, setOpen] = useState<boolean>(false);
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [job, setJob] = useState<JobListProps | null>(null);
   const { id} = useParams();  
 
   const {register, handleSubmit, control, getValues} = useForm<CandidatListProps>({
@@ -60,6 +62,20 @@ export default function ApplicationForm() {
     }
   };
 
+   useEffect(() => {
+      const fetchJobById = async (id: number) => {
+        const jobFound = await getJobByIdFromIndexedDB(id);
+        if (jobFound) {
+          setJob(jobFound);
+        }
+      };
+  
+      const idParam = Number(id);
+      if (idParam) {
+        fetchJobById(idParam);
+      }
+    }, [id]); 
+
   return (
     <PrivateRoute>
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
@@ -71,7 +87,7 @@ export default function ApplicationForm() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <h1 className="text-xl font-semibold text-foreground">
-                Apply Front End at Rakamin
+                Apply {job?.title ?? 'Jobs'} at Rakamin
               </h1>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

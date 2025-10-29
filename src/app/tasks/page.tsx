@@ -17,13 +17,11 @@ const JobListingPage = () => {
   const [job, setJob] = useState<JobListProps | null>(null);
   const [idx, setId] = useSearchParams();
 
-  // Update the URL parameter with the selected job's id
   const onChangeId = (id: string) => {
     idx.set("id", id);
     setId(idx, { replace: true });
   };
 
-  // Memoized logic to handle the selection of job id
   const idSelected = useMemo(() => {
     const idFromPath = idx.get("id");
     const defaultId = jobs.length > 0 ? jobs[0].id?.toString() : "";
@@ -35,10 +33,9 @@ const JobListingPage = () => {
       const fetchedJobs = await getAllJobsFromIndexedDB();
       setJobs(fetchedJobs); // Store jobs in state
     };
-    fetchJobs(); // Fetch job data on component mount
-  }, []); // Empty dependency to fetch jobs only once
+    fetchJobs();
+  }, []); 
 
-  // When the job data or selected id changes, fetch the job details
   useEffect(() => {
     const fetchJobById = async (id: number) => {
       const jobFound = await getJobByIdFromIndexedDB(id);
@@ -47,11 +44,11 @@ const JobListingPage = () => {
       }
     };
 
-    const idParam = Number(idSelected); // Convert the selected id to a number
+    const idParam = Number(idSelected);
     if (idParam) {
       fetchJobById(idParam);
     }
-  }, [idSelected, jobs]); // Trigger this effect when the selected id or jobs change
+  }, [idSelected, jobs]); 
 
   return (
     <PrivateRoute>
