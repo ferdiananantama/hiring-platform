@@ -1,8 +1,22 @@
 import SuccesApplyImg from "@/assets/images/succes-apply.png";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function SuccesApply() {
+  const route = useNavigate();
+  
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="relative flex flex-col items-center justify-center h-screen">
+      <Button
+        onClick={() => route('/dashboard/user/job-list')}
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 left-4 h-8 w-8"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+
       <img
         src={SuccesApplyImg}
         alt="No data illustration"

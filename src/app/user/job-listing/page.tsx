@@ -2,72 +2,28 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Wallet } from "lucide-react";
 import logo from "@/assets/images/logo-list.png";
-import { useEffect, useMemo, useState } from "react";
-import type { JobListProps } from "@/types/job-list";
-import {
-  getAllJobsFromIndexedDB,
-  getJobByIdFromIndexedDB,
-} from "@/utils/indexedDBUtils";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import PrivateRoute from "@/components/layouts/PrivateRoute";
 import Header from "@/components/navbar";
+import useJobListingModel from "./job-listing-models";
 
 const JobListingPage = () => {
-  const route = useNavigate();
-  const [jobs, setJobs] = useState<JobListProps[]>([]);
-  const [job, setJob] = useState<JobListProps | null>(null);
-  const [idx, setId] = useSearchParams();
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
-  const onChangeId = (id: string) => {
-    setSelectedJobId(id);
-    idx.set("id", id);
-    setId(idx, { replace: true });
-  };
-
-  const idSelected = useMemo(() => {
-    const idFromPath = idx.get("id");
-    const defaultId = jobs.length > 0 ? jobs[0].id?.toString() : "";
-    return idFromPath ?? defaultId;
-  }, [idx, jobs]);
-
-  useEffect(() => {
-    const fetchJobs = async () => {
-      const fetchedJobs = await getAllJobsFromIndexedDB();
-      setJobs(fetchedJobs); // Store jobs in state
-    };
-    fetchJobs();
-  }, []);
-
-  useEffect(() => {
-    const fetchJobById = async (id: number) => {
-      const jobFound = await getJobByIdFromIndexedDB(id);
-      if (jobFound) {
-        setJob(jobFound);
-      }
-    };
-    //
-
-    const idParam = Number(idSelected);
-    if (idParam) {
-      fetchJobById(idParam);
-    }
-  }, [idSelected, jobs]);
+  const model = useJobListingModel();
 
   return (
-    <PrivateRoute>
+    <PrivateRoute requiredRole="user">
       <div className="min-h-screen bg-background">
         <Header />
 
         <div className="max-w-7xl mx-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-4 space-y-3">
-              {jobs.length > 0 &&
-                jobs.map((job) => (
+              {model.dataJobsList.data.length > 0 &&
+                model.dataJobsList.data.map((job) => (
                   <Card
-                    onClick={() => onChangeId(job.id ? job.id.toString() : "")}
+                    onClick={() => model.onChangeId(job.id ? job.id.toString() : "")}
                     className={`border hover:shadow-lg transition-shadow py-5 ${
-                      selectedJobId === job.id?.toString()
+                      model.selectedJobId === job.id?.toString()
                         ? "border-[#01777F]  border-2"
                         : "border-slate-300 bg-white"
                     }`}
@@ -113,17 +69,17 @@ const JobListingPage = () => {
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-sm text-xs font-medium bg-green-800 text-white dark:bg-green-900/30 dark:text-green-400">
-                            {job?.slug}
+                            {model.dataJob.data?.slug}
                           </span>
                         </div>
                         <h1 className="text-2xl font-bold text-foreground">
-                          {job?.title}
+                          {model.dataJob.data?.title}
                         </h1>
                         <p className="text-muted-foreground mt-1">Rakamin</p>
                       </div>
                     </div>
                     <Button
-                      onClick={() => route(`/user/apply/${idSelected}`)}
+                      onClick={() => model.route(`/user/apply/${model.idSelected}`)}
                       className="bg-amber-400 hover:bg-amber-500 hover:text-slate-600 text-black font-medium px-6"
                     >
                       Apply
@@ -131,7 +87,7 @@ const JobListingPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {job?.job_description}
+                  {model.dataJob.data?.job_description}
                 </CardContent>
               </Card>
             </div>

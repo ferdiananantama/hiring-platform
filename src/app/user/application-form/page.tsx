@@ -17,196 +17,23 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import type { CandidatListProps } from "@/types/candidat-list";
-import {
-  addCandidatToIndexedDB,
-  getJobByIdFromIndexedDB,
-} from "@/utils/indexedDBUtils";
-import { useNavigate, useParams } from "react-router-dom";
-import PrivateRoute from "@/components/layouts/PrivateRoute";
-import type { JobListProps } from "@/types/job-list";
-import * as handTrack from "handtrackjs"; // Importing correctly
+import { Controller} from "react-hook-form";
 import Webcam from "react-webcam";
+import useApplicationFormModel from "./application-form-model";
+import PrivateRoute from "@/components/layouts/PrivateRoute";
 
 export default function ApplicationForm() {
-  const route = useNavigate();
-  const [open, setOpen] = useState<boolean>(false);
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [job, setJob] = useState<JobListProps | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [isPoseDetected, setIsPoseDetected] = useState(false);
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false); // To track video load status
-  const webcamRef = useRef<Webcam | null>(null); // Specify the type as Webcam
-  const [model, setModel] = useState<any>(null);
-
-  // onClick for take picture button
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-
-  const { id } = useParams();
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    getValues,
-    formState: { errors },
-  } = useForm<CandidatListProps>({
-    defaultValues: {
-      fullName: "",
-      email: "",
-      phone: "",
-      domicile: "",
-      gender: "",
-      profile_picture: "1",
-      linkedin_link: "",
-    },
-  });
-
-  const onSubmit = () => {
-    try {
-      const payload = {
-        fullName: getValues("fullName"),
-        email: getValues("email"),
-        phone: getValues("phone"),
-        domicile: getValues("domicile"),
-        gender: getValues("gender"),
-        profile_picture: getValues("profile_picture"),
-        linkedin_link: getValues("linkedin_link"),
-        idJobList: Number(id),
-      };
-      addCandidatToIndexedDB(payload);
-      route("/dashboard/success/apply");
-    } catch (error) {
-      console.error("Error submitting candidat:", error);
-    }
-  };
-
-  useEffect(() => {
-    const fetchJobById = async (id: number) => {
-      const jobFound = await getJobByIdFromIndexedDB(id);
-      if (jobFound) {
-        setJob(jobFound);
-      }
-    };
-
-    const idParam = Number(id);
-    if (idParam) {
-      fetchJobById(idParam);
-    }
-  }, [id]);
-
-  const inputFullName = useMemo(() => {
-    return job?.fields.find((field) => field.key === "fullName")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  const inputPhotoProfile = useMemo(() => {
-    return job?.fields.find((field) => field.key === "photoProfile")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  console.log("inputPhotoProfile:", inputPhotoProfile);
-
-  const inputGender = useMemo(() => {
-    return job?.fields.find((field) => field.key === "gender")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  const inputDomicile = useMemo(() => {
-    return job?.fields.find((field) => field.key === "domicile")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  const inputEmail = useMemo(() => {
-    return job?.fields.find((field) => field.key === "email")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  const inputPhoneNumber = useMemo(() => {
-    return job?.fields.find((field) => field.key === "phoneNumber")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  const inputLinkedInLink = useMemo(() => {
-    return job?.fields.find((field) => field.key === "linkedinLink")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  const inputDateOfBirth = useMemo(() => {
-    return job?.fields.find((field) => field.key === "dateOfBirth")?.validation
-      ?.required;
-  }, [job?.fields]);
-
-  useEffect(() => {
-    handTrack
-      .load()
-      .then((loadedModel) => {
-        setModel(loadedModel);
-        console.log("Model loaded successfully.");
-      })
-      .catch((error) => {
-        console.error("Error loading handTrack model:", error);
-      });
-  }, []);
-
-  const detectGesture = async () => {
-    if (webcamRef.current && model && isVideoLoaded) {
-      const predictions = await model.detect(webcamRef.current.video);
-
-      if (predictions.length > 0) {
-        const hand = predictions[0];
-        const landmarks = hand.landmarks;
-
-        // Detect 3️⃣ pose (3 fingers)
-        const fingerCount = landmarks ? landmarks.length : 0;
-
-        if (fingerCount >= 3) {
-          setIsPoseDetected(true);
-        } else {
-          setIsPoseDetected(false);
-        }
-      } else {
-        setIsPoseDetected(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (model && webcamRef.current) {
-      const interval = setInterval(() => {
-        detectGesture();
-      }, 100); // Check every 100ms for gestures
-
-      return () => clearInterval(interval);
-    }
-  }, [model, isVideoLoaded]);
-
-  // Ensure video is loaded before detecting gestures
-  const handleVideoOnLoad = () => {
-    setIsVideoLoaded(true); // Video data is now loaded
-  };
-
-  const captureImage = () => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot(); // Capture the screenshot
-      setCapturedImage(imageSrc); // Store captured image
-      setIsModalOpen(false); // Close modal after capture
-    }
-  };
+  const model = useApplicationFormModel();
 
   return (
-    <PrivateRoute>
+    <PrivateRoute requiredRole="user">
       <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
         <Card className="w-full max-w-3xl shadow-lg">
           <CardHeader className="bg-background">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Button
-                  onClick={() => route(-1)}
+                  onClick={() => model.route(-1)}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
@@ -214,7 +41,7 @@ export default function ApplicationForm() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="text-xl font-semibold text-foreground">
-                  Apply {job?.title ?? "Jobs"} at Rakamin
+                  Apply {model.job.data?.title ?? "Jobs"} at Rakamin
                 </h1>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -227,7 +54,7 @@ export default function ApplicationForm() {
           </CardHeader>
 
           <CardContent className="px-10">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={model.handleSubmit(model.onSubmit)} className="space-y-6">
               <div className="text-sm text-destructive mb-6">* Required</div>
 
               <div className="space-y-3">
@@ -278,7 +105,7 @@ export default function ApplicationForm() {
                     type="button"
                     variant="outline"
                     className="gap-2"
-                    onClick={handleOpenModal}
+                    onClick={model.handleOpenModal}
                   >
                     <Camera className="h-4 w-4" />
                     Take a Picture
@@ -286,7 +113,7 @@ export default function ApplicationForm() {
                 </div>
               </div>
 
-              {inputFullName !== null && (
+              {model.inputFullName !== null && (
                 <div className="space-y-2">
                   <Label
                     htmlFor="fullName"
@@ -297,26 +124,26 @@ export default function ApplicationForm() {
                   <Input
                     id="fullName"
                     placeholder="Enter your full name"
-                    {...register("fullName")}
+                    {...model.register("fullName")}
                     className="bg-background"
-                    required={inputFullName ?? false}
+                    required={model.inputFullName ?? false}
                   />
                 </div>
               )}
 
-              {inputDateOfBirth !== null && (
+              {model.inputDateOfBirth !== null && (
                 <div className="space-y-2">
                   <Label htmlFor="date" className="px-1">
                     Date of birth<span className="text-destructive">*</span>
                   </Label>
-                  <Popover open={open} onOpenChange={setOpen}>
+                  <Popover open={model.open} onOpenChange={model.setOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         id="date"
                         className="w-full justify-between font-normal"
                       >
-                        {date ? date.toLocaleDateString() : "Select date"}
+                        {model.date ? model.date.toLocaleDateString() : "Select date"}
                         <ChevronDownIcon />
                       </Button>
                     </PopoverTrigger>
@@ -326,12 +153,12 @@ export default function ApplicationForm() {
                     >
                       <Calendar
                         mode="single"
-                        selected={date}
-                        required={inputDateOfBirth ?? false}
+                        selected={model.date}
+                        required={model.inputDateOfBirth ?? false}
                         captionLayout="dropdown"
                         onSelect={(date: any) => {
-                          setDate(date);
-                          setOpen(false);
+                          model.setDate(date);
+                          model.setOpen(false);
                         }}
                         className="bg-white"
                       />
@@ -340,20 +167,20 @@ export default function ApplicationForm() {
                 </div>
               )}
 
-              {inputGender !== null && (
+              {model.inputGender !== null && (
                 <div className="space-y-3">
                   <Label className="text-sm font-medium text-foreground">
                     Pronoun (gender)<span className="text-destructive">*</span>
                   </Label>
                   <Controller
                     name="gender"
-                    control={control}
+                    control={model.control}
                     render={({ field }) => (
                       <RadioGroup
                         {...field}
                         value={field.value}
                         onValueChange={(value) => field.onChange(value)}
-                        required={inputGender ?? false}
+                        required={model.inputGender ?? false}
                         className="flex gap-8"
                       >
                         <div className="flex items-center space-x-2">
@@ -380,7 +207,7 @@ export default function ApplicationForm() {
                 </div>
               )}
 
-              {inputDomicile !== null && (
+              {model.inputDomicile !== null && (
                 <div className="space-y-2">
                   <Label
                     htmlFor="domicile"
@@ -390,11 +217,11 @@ export default function ApplicationForm() {
                   </Label>
                   <Controller
                     name="domicile"
-                    control={control}
+                    control={model.control}
                     rules={{ required: "Domicile is required" }}
                     render={({ field }) => (
                       <Select
-                        required={inputDomicile ?? false}
+                        required={model.inputDomicile ?? false}
                         {...field}
                         value={field.value}
                         onValueChange={(value) => field.onChange(value)}
@@ -412,15 +239,15 @@ export default function ApplicationForm() {
                       </Select>
                     )}
                   />
-                  {errors.domicile && (
+                  {model.errors.domicile && (
                     <span className="text-red-500 text-sm">
-                      {errors.domicile.message}
+                      {model.errors.domicile.message}
                     </span>
                   )}
                 </div>
               )}
 
-              {inputPhoneNumber !== null && (
+              {model.inputPhoneNumber !== null && (
                 <div className="space-y-2">
                   <Label
                     htmlFor="phoneNumber"
@@ -450,17 +277,17 @@ export default function ApplicationForm() {
                       </SelectContent>
                     </Select>
                     <Input
-                      {...register("phone")}
+                      {...model.register("phone")}
                       id="phoneNumber"
                       placeholder="81XXXXXXXXX"
                       className="flex-1 bg-background"
-                      required={inputPhoneNumber ?? false}
+                      required={model.inputPhoneNumber ?? false}
                     />
                   </div>
                 </div>
               )}
 
-              {inputEmail !== null && (
+              {model.inputEmail !== null && (
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
@@ -469,17 +296,17 @@ export default function ApplicationForm() {
                     Email<span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    {...register("email")}
+                    {...model.register("email")}
                     id="email"
                     type="email"
                     placeholder="Enter your email address"
                     className="bg-background"
-                    required={inputEmail ?? false}
+                    required={model.inputEmail ?? false}
                   />
                 </div>
               )}
 
-              {inputLinkedInLink !== null && (
+              {model.inputLinkedInLink !== null && (
                 <div className="space-y-2">
                   <Label
                     htmlFor="linkedinUrl"
@@ -488,11 +315,11 @@ export default function ApplicationForm() {
                     Link Linkedin<span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    {...register("linkedin_link")}
+                    {...model.register("linkedin_link")}
                     id="linkedinUrl"
                     placeholder="https://linkedin.com/in/username"
                     className="bg-background"
-                    required={inputLinkedInLink ?? false}
+                    required={model.inputLinkedInLink ?? false}
                   />
                 </div>
               )}
@@ -505,13 +332,13 @@ export default function ApplicationForm() {
               </Button>
             </form>
           </CardContent>
-          {isModalOpen && (
+          {model.isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1D1F20]/50">
               <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full p-4 relative">
                 <button
                   aria-label="Close"
                   className="absolute top-4 right-4 text-black text-xl font-bold"
-                  onClick={handleCloseModal}
+                  onClick={model.handleCloseModal}
                 >
                   ×
                 </button>
@@ -524,7 +351,7 @@ export default function ApplicationForm() {
 
                 <Webcam
                   audio={false}
-                  ref={webcamRef}
+                  ref={model.webcamRef}
                   screenshotFormat="image/jpeg"
                   width="100%"
                   videoConstraints={{
@@ -532,13 +359,13 @@ export default function ApplicationForm() {
                     width: 1280,
                     height: 720,
                   }}
-                  onCanPlay={handleVideoOnLoad}
+                  onCanPlay={model.handleVideoOnLoad}
                 />
 
-                {isPoseDetected && (
+                {model.isPoseDetected && (
                   <div className="mt-4 flex justify-center gap-6">
                     <Button
-                      onClick={captureImage}
+                      onClick={model.captureImage}
                       className="bg-green-500 text-white"
                     >
                       Capture Photo
@@ -546,11 +373,11 @@ export default function ApplicationForm() {
                   </div>
                 )}
 
-                {capturedImage && (
+                {model.capturedImage && (
                   <div className="mt-4">
                     <h3 className="font-bold">Preview:</h3>
                     <img
-                      src={capturedImage}
+                      src={model.capturedImage}
                       alt="Captured"
                       className="w-full"
                     />

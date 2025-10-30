@@ -18,7 +18,6 @@ import {
 import { getUserByEmail } from "@/utils/indexedDBUtils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/store/useAuthStore";
 import { MailIcon } from "lucide-react";
 
 const loginFormSchema = z.object({
@@ -32,7 +31,6 @@ export function LoginForm1({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const setIsLoggedIn = useAuthStore((state) => state.setIsLoggedIn);
   const route = useNavigate();
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -48,10 +46,10 @@ export function LoginForm1({
       const user = await getUserByEmail(data.email, data.password);
 
       if (user?.role === "admin") {
-        setIsLoggedIn(true);
+        localStorage.setItem("userRole", "admin");
         route("/dashboard/admin/job-list");
       } else if (user?.role === "user") {
-        setIsLoggedIn(true);
+        localStorage.setItem("userRole", "user");
         route("/dashboard/user/job-list");
       } else {
         setError("Invalid email or password.");

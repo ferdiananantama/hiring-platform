@@ -1,80 +1,16 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, User } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { CandidatListProps } from "@/types/candidat-list";
-import {
-  getAllCandidateFromIndexedDB,
-  getJobByIdFromIndexedDB,
-} from "@/utils/indexedDBUtils";
-import { useParams } from "react-router-dom";
-import type { JobListProps } from "@/types/job-list";
 import emptyImg from "@/assets/images/empty-candidate.png";
 import PrivateRoute from "@/components/layouts/PrivateRoute";
+import useManageJobModel from "./manage-job-model";
 
 export default function ManageCandidate() {
-  const [selectedCandidates, setSelectedCandidates] = useState<Set<string>>(
-    new Set()
-  );
-  const { id } = useParams();
-  const [candidats, setCandidates] = useState<CandidatListProps[]>([]);
-  const [job, setJob] = useState<JobListProps>();
 
-  useEffect(() => {
-    const fetchCandidates = async () => {
-      try {
-        const fetchedCandidates = await getAllCandidateFromIndexedDB();
-
-        const filteredCandidates = fetchedCandidates.filter(
-          (candidate) => candidate.idJobList === Number(id)
-        );
-
-        setCandidates(filteredCandidates);
-      } catch (error) {
-        console.error("Error fetching candidates:", error);
-      }
-    };
-
-    fetchCandidates();
-  }, [id]);
-
-  useEffect(() => {
-    const fetchJobById = async (id: number) => {
-      const jobFound = await getJobByIdFromIndexedDB(id);
-      if (jobFound) {
-        setJob(jobFound);
-      }
-    };
-
-    const idParam = Number(id);
-    if (idParam) {
-      fetchJobById(idParam);
-    }
-  }, [id]);
-
-  const toggleCandidate = (id: string) => {
-    const newSelected = new Set(selectedCandidates);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedCandidates(newSelected);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedCandidates.size === candidats.length) {
-      setSelectedCandidates(new Set());
-    } else {
-      setSelectedCandidates(new Set(candidats.map((c) => String(c.id) ?? "")));
-    }
-  };
-
-  const allSelected =
-    selectedCandidates.size === candidats.length && candidats.length > 0;
+  const model = useManageJobModel();
 
   return (
-    <PrivateRoute>
+    <PrivateRoute requiredRole="admin">
       <div className="min-h-screen bg-background">
         <header className="bg-background border-b border-border flex items-center px-6 py-4 gap-2 text-sm">
           <Button
@@ -103,10 +39,10 @@ export default function ManageCandidate() {
         </header>
         <div className="max-w-7xl mx-auto space-y-6 p-6">
           <h1 className="text-2xl font-semibold text-foreground">
-            {job?.title ?? "Job Title"}
+            {model.job?.data?.title ?? "Job Title"}
           </h1>
 
-          {candidats.length > 0 ? (
+          {model.candidats.length > 0 ? (
             <Card className="overflow-hidden bg-white shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -116,8 +52,8 @@ export default function ManageCandidate() {
                         <div className="flex items-center gap-3">
                           <input
                             type="checkbox"
-                            checked={allSelected}
-                            onChange={toggleSelectAll}
+                            checked={model.allSelected}
+                            onChange={model.toggleSelectAll}
                             className="w-5 h-5 rounded border-2 border-cyan-500 text-cyan-500 focus:ring-cyan-500 cursor-pointer accent-cyan-500"
                           />
                           <span className="uppercase text-xs font-semibold tracking-wide">
@@ -146,7 +82,7 @@ export default function ManageCandidate() {
                     </tr>
                   </thead>
                   <tbody>
-                    {candidats.map((candidate, index) => (
+                    {model.candidats.map((candidate, index) => (
                       <tr
                         key={candidate.id}
                         className={`border-b border-border hover:bg-muted/20 transition-colors ${
@@ -157,11 +93,11 @@ export default function ManageCandidate() {
                           <div className="flex items-center gap-3">
                             <input
                               type="checkbox"
-                              checked={selectedCandidates.has(
+                              checked={model.selectedCandidates.has(
                                 String(candidate.id) ?? ""
                               )}
                               onChange={() =>
-                                toggleCandidate(String(candidate.id) ?? "")
+                                model.toggleCandidate(String(candidate.id) ?? "")
                               }
                               className="w-5 h-5 rounded border-2 border-cyan-500 text-cyan-500 focus:ring-cyan-500 cursor-pointer accent-cyan-500"
                             />

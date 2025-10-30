@@ -1,9 +1,7 @@
-import { useAuthStore } from "@/store/useAuthStore";
 import { User } from "lucide-react";
 import { useState } from "react";
 
 function Header() {
-  const setIsLoggedIn = useAuthStore((state) => state.setIsLoggedIn);
   const [showLogout, setShowLogout] = useState(false);
 
   const handleImageClick = () => {
@@ -11,7 +9,8 @@ function Header() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    localStorage.clear();
+    window.location.reload();
   };
 
   return (

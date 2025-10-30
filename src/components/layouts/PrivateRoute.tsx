@@ -1,22 +1,22 @@
-// src/components/PrivateRoute.tsx
 import React from "react";
-import { useAuthStore } from "@/store/useAuthStore"; // Menggunakan store Zustand
 import { useNavigate } from "react-router-dom";
 
 interface PrivateRouteProps {
   children: React.ReactNode;
+  requiredRole?: "admin" | "user";
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const router = useNavigate();
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) => {
+  const isLoggedIn = localStorage.getItem("userRole") !== null;
+  const userRole = localStorage.getItem("userRole"); 
+  const navigate = useNavigate();
 
-  if (!isLoggedIn) {
-    router("/auth/sign-in");
-    return null; 
+  if (!isLoggedIn || userRole !== requiredRole) {
+    navigate("/auth/sign-in");
+    return null;
   }
 
-  return <>{children}</>; 
+  return <>{children}</>;
 };
 
 export default PrivateRoute;
