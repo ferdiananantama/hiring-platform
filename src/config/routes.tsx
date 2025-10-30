@@ -34,60 +34,60 @@ export const routes: RouteConfig[] = [
   // Use relative path "dashboard" instead of "/dashboard" for basename compatibility
   {
     path: "/",
-    element: <Navigate to="/auth/sign-in" replace />,
+    element: <Navigate to="auth/sign-in" replace />,
   },
 
   // Dashboard Routes
   {
-    path: "/dashboard/admin/job-list",
+    path: "dashboard/admin/job-list",
     element: <Dashboard />,
   },
   {
-    path: "/dashboard/admin/manage-job/:id",
+    path: "dashboard/admin/manage-job/:id",
     element: <Dashboard2 />,
   },
   {
-    path: "/dashboard/success/apply",
+    path: "dashboard/success/apply",
     element: <SuccessApply />,
   },
   {
-    path: "/dashboard/user/job-list",
+    path: "dashboard/user/job-list",
     element: <Tasks />,
   },
   {
-    path: "/user/apply/:id",
+    path: "user/apply/:id",
     element: <Pricing />,
   },
 
   // Authentication Routes
   {
-    path: "/auth/sign-in",
+    path: "auth/sign-in",
     element: <SignIn />,
   },
   {
-    path: "/auth/sign-up",
+    path: "auth/sign-up",
     element: <SignUp />,
   },
 
   // Error Pages
   {
-    path: "/errors/unauthorized",
+    path: "errors/unauthorized",
     element: <Unauthorized />,
   },
   {
-    path: "/errors/forbidden",
+    path: "errors/forbidden",
     element: <Forbidden />,
   },
   {
-    path: "/errors/not-found",
+    path: "errors/not-found",
     element: <NotFound />,
   },
   {
-    path: "/errors/internal-server-error",
+    path: "errors/internal-server-error",
     element: <InternalServerError />,
   },
   {
-    path: "/errors/under-maintenance",
+    path: "errors/under-maintenance",
     element: <UnderMaintenance />,
   },
   {

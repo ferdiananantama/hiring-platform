@@ -69,7 +69,7 @@ export function LoginForm1({
           <div className="text-sm">
             Belum punya akun?{" "}
             <a
-              href="/auth/sign-up"
+            onClick={() => route('/auth/sign-up')}
               className="underline underline-offset-4 text-[#01959f]"
             >
               Daftar menggunakan email
