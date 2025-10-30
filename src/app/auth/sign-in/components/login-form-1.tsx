@@ -68,7 +68,7 @@ export function LoginForm1({
             Belum punya akun?{" "}
             <a
             onClick={() => route('/auth/sign-up')}
-              className="underline underline-offset-4 text-[#01959f]"
+              className="underline underline-offset-4 text-[#01959f] cursor-pointer"
             >
               Daftar menggunakan email
             </a>

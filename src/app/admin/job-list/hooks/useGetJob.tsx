@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function useGetJob() {
     const [data, setData] = useState<JobListProps[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<any>(null);
 
     const fetchJobs = async () => {

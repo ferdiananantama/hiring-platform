@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function useGetJobById(props : { id : number}) {
     const [data, setData] = useState<JobListProps>();
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<any>(null);
 
     const fetchData = async () => {

@@ -11,6 +11,8 @@ import SkeletonJobList from "@/app/admin/job-list/components/skeleton-job-list";
 
 const JobListApp = () => {
   const model = useJobListModel();
+  console.log(model.dataJobsList.loading);
+  
   return (
     <PrivateRoute requiredRole="admin">
       <div className="min-h-screen bg-slate-50">

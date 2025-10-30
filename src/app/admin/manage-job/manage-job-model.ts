@@ -47,6 +47,7 @@ export default function useManageJobModel() {
         job,
         toggleCandidate,
         toggleSelectAll,
-        allSelected
+        allSelected,
+        dataCandidates
     }
 }

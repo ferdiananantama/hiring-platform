@@ -5,6 +5,8 @@ import logo from "@/assets/images/logo-list.png";
 import PrivateRoute from "@/components/layouts/PrivateRoute";
 import Header from "@/components/navbar";
 import useJobListingModel from "./job-listing-models";
+import SkeletonListUser from "./components/SkeletonListUser";
+import SkeletonDetailList from "./components/SkeletonDetailList";
 
 const JobListingPage = () => {
 
@@ -18,7 +20,11 @@ const JobListingPage = () => {
         <div className="max-w-7xl mx-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-4 space-y-3">
-              {model.dataJobsList.data.length > 0 &&
+              {model.dataJobsList.loading ? (
+                [...Array(5)].map((_, index) => (
+                  <SkeletonListUser index={index} />
+                ))
+              ) : (
                 model.dataJobsList.data.map((job) => (
                   <Card
                     onClick={() => model.onChangeId(job.id ? job.id.toString() : "")}
@@ -35,12 +41,8 @@ const JobListingPage = () => {
                           <img src={logo} alt="Job logo" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-lg text-foreground">
-                            {job.title}
-                          </h3>
-                          <p className="text-muted-foreground text-sm mt-1">
-                            Rakamin
-                          </p>
+                          <h3 className="font-semibold text-lg text-foreground">{job.title}</h3>
+                          <p className="text-muted-foreground text-sm mt-1">Rakamin</p>
                         </div>
                       </div>
                     </CardHeader>
@@ -55,10 +57,13 @@ const JobListingPage = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                ))
+              )}
             </div>
-
             <div className="lg:col-span-8">
+              {model.dataJob.loading ? (
+                  <SkeletonDetailList />
+              ) : (
               <Card className="border">
                 <CardHeader className="border-b bg-muted/30">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -90,6 +95,7 @@ const JobListingPage = () => {
                   {model.dataJob.data?.job_description}
                 </CardContent>
               </Card>
+              )}
             </div>
           </div>
         </div>
